@@ -51,13 +51,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
-            z-index: 100; /* Toujours au-dessus */
+            z-index: 100;
             color: #ff6b81;
             font-size: 18px;
             box-shadow: 0 4px 10px rgba(255, 182, 193, 0.2);
             transition: all 0.3s ease;
-            opacity: 0.6; /* Discret par défaut */
+            opacity: 0.6;
+            cursor: pointer;
         }
 
         #music-btn:hover {
@@ -66,11 +66,66 @@
             background: rgba(255, 255, 255, 0.9);
         }
 
-        /* Effet de rotation quand la musique joue */
         .spin {
             animation: spin 4s linear infinite;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+
+        /* =========================================
+           EASTER EGGS (Boutons cachés et Notification)
+           ========================================= */
+        .easter-egg {
+            position: fixed;
+            font-size: 26px;
+            opacity: 0.15; /* Très discret */
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            user-select: none;
+            /* Empêche le bleu de sélection sur mobile */
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .easter-egg:hover {
+            opacity: 0.9;
+            transform: scale(1.3) rotate(5deg);
+        }
+
+        #ee-crochet { top: 25px; left: 25px; }
+        #ee-overcooked { top: 25px; right: 85px; } /* À côté du bouton musique */
+        #ee-chat { bottom: 25px; left: 25px; }
+        #ee-kebab { bottom: 25px; right: 25px; }
+
+        #toast-msg {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translate(-50%, 20px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 1px solid #ffb3c6;
+            box-shadow: 0 5px 15px rgba(255, 107, 129, 0.3);
+            color: #4a3b3e;
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            /* Animation rebondissante */
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+            text-align: center;
+            width: fit-content;
+            max-width: 90%;
+        }
+
+        #toast-msg.show {
+            opacity: 1;
+            transform: translate(-50%, -30px);
+        }
+
 
         /* =========================================
            SCÈNE 1 : L'ENVELOPPE
@@ -107,9 +162,9 @@
             position: relative;
             width: 320px;
             height: 220px;
-            cursor: pointer;
             perspective: 1200px;
             animation: float 4s ease-in-out infinite;
+            cursor: pointer;
         }
 
         .env-back {
@@ -172,7 +227,6 @@
             transition-delay: 0.4s;
         }
 
-
         /* =========================================
            SCÈNE 2 : BOÎTE DE DIALOGUE
            ========================================= */
@@ -226,10 +280,10 @@
             font-weight: 600;
             font-family: 'Playfair Display', 'Times New Roman', Times, serif;
             border-radius: 30px;
-            cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(255, 107, 129, 0.15);
             position: relative;
+            cursor: pointer;
         }
 
         .btn-suivant:hover {
@@ -242,7 +296,6 @@
         .btn-suivant:active {
             transform: scale(0.95);
         }
-
 
         /* =========================================
            ANIMATIONS FINALES (Pétales)
@@ -269,20 +322,29 @@
 </head>
 <body>
 
-    <!-- LECTEUR AUDIO CACHÉ (N'oublie pas de changer le nom du fichier si besoin) -->
+    <!-- LECTEUR AUDIO CACHÉ -->
     <audio id="bg-music" loop>
         <source src="dusk.mp3" type="audio/mpeg">
         Votre navigateur ne supporte pas l'audio.
     </audio>
 
     <!-- BOUTON MUSIQUE -->
-    <div id="music-btn">
+    <div id="music-btn" title="Musique">
         <i class="fa-solid fa-volume-xmark" id="music-icon"></i>
     </div>
 
+    <!-- EASTER EGGS (Cachés dans les coins) -->
+    <div class="easter-egg" id="ee-crochet" title="Secret...">🧶</div>
+    <div class="easter-egg" id="ee-overcooked" title="Secret...">🍳</div>
+    <div class="easter-egg" id="ee-chat" title="Secret...">🐈</div>
+    <div class="easter-egg" id="ee-kebab" title="Secret...">🥙</div>
+
+    <!-- NOTIFICATION (Toast) POUR LES EASTER EGGS -->
+    <div id="toast-msg">Message secret...</div>
+
     <!-- SCÈNE 1 : L'ENVELOPPE -->
     <div id="scene-enveloppe">
-        <h2 class="texte-enveloppe">Une lettre pour toi... <br> <span>(Clique sur l'enveloppe pour l'ouvrir)</span></h2>
+        <h2 class="texte-enveloppe">Lettre pour Oulia... <br> <span>(Clique sur l'enveloppe pour l'ouvrir)</span></h2>
         
         <div class="envelope-wrapper" id="envelope-btn">
             <div class="env-back"></div>
@@ -304,6 +366,85 @@
 
     <script>
         // ==========================================
+        // GÉNÉRATEUR DE SONS (AudioContext) AJOUTÉ ICI
+        // ==========================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'pop') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'meow') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'pan') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15);
+            }
+        }
+
+        // ==========================================
+        // GESTION DES EASTER EGGS
+        // ==========================================
+        const toastMsg = document.getElementById('toast-msg');
+        let toastTimeout;
+
+        function afficherSecret(message, soundType = 'pop') {
+            playSound(soundType); // LECTURE DU SON AJOUTÉE ICI
+            
+            toastMsg.innerText = message;
+            toastMsg.classList.add('show');
+            
+            // Réinitialise le chrono si on clique sur un autre secret rapidement
+            clearTimeout(toastTimeout);
+            
+            // Fait disparaître le message après 4 secondes
+            toastTimeout = setTimeout(() => {
+                toastMsg.classList.remove('show');
+            }, 4000);
+        }
+
+        document.getElementById('ee-crochet').addEventListener('click', () => {
+            afficherSecret("J'attends avec impatience le serre-câble en crochet... 🧶✨", 'pop');
+        });
+
+        document.getElementById('ee-overcooked').addEventListener('click', () => {
+            afficherSecret("Promis, on terminera Overcooked 2 avec les 3 étoiles partout ! 🍳🔥", 'pan');
+        });
+
+        document.getElementById('ee-chat').addEventListener('click', () => {
+            afficherSecret("Mvoungui m'a dit de te le dire... 🐾🐈", 'meow');
+        });
+
+        document.getElementById('ee-kebab').addEventListener('click', () => {
+            afficherSecret("Menu Kebab supplément sauce algérienne pour fêter ça ? 🥙🍟", 'pop');
+        });
+
+
+        // ==========================================
         // GESTION DE LA MUSIQUE
         // ==========================================
         const bgMusic = document.getElementById('bg-music');
@@ -319,13 +460,11 @@
             } else {
                 bgMusic.play();
                 musicIcon.className = "fa-solid fa-music";
-                musicIcon.classList.add('spin'); // Petite animation sympa quand ça joue
+                musicIcon.classList.add('spin');
             }
             isMusicPlaying = !isMusicPlaying;
         });
 
-        // Astuce : On essaie de lancer la musique automatiquement quand elle clique sur l'enveloppe
-        // Les navigateurs l'autorisent souvent si c'est suite à un clic de l'utilisateur.
         function startMusicIfAllowed() {
             if (!isMusicPlaying) {
                 bgMusic.play().then(() => {
@@ -338,7 +477,6 @@
             }
         }
 
-
         // ==========================================
         // GESTION DE L'OUVERTURE DE L'ENVELOPPE
         // ==========================================
@@ -347,7 +485,12 @@
         const boiteDialogue = document.getElementById('boite-dialogue');
 
         envelopeBtn.addEventListener('click', () => {
-            startMusicIfAllowed(); // Tente de lancer la musique au clic
+            // DÉBLOCAGE AUDIO AJOUTÉ ICI
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            startMusicIfAllowed();
 
             envelopeBtn.classList.add('open');
             envelopeBtn.style.cursor = 'default';
@@ -367,7 +510,6 @@
             }, 2000); 
         });
 
-
         // ==========================================
         // GESTION DU DIALOGUE
         // ==========================================
@@ -377,11 +519,12 @@
             "Et j'avais un truc à te dire, mais je voulais le faire d'une façon originale",
             "Alors j'ai fait ce petit site.",
             "La vérité c'est que je t'aime tout simplement, en plus de ça t'es marrante, t'as du caractère, t'es attachante, t'as juste une personnalité incroyable. Je trouve aussi que t'es vraiment belle, j'adore passer du temps avec toi en t'écrivant en t'appelant ou en jouant. Et si jamais t'acceptes, je te promets de donner le meilleur de moi-même pour bien faire les choses.",
-            "Alors est-ce que ça te tente de te mettre avec moi ?"
+            "Alors est-ce que ça te dirai de te mettre en couple avec moi ?"
         ];
 
         let currentIndex = 0;
         let isEnd = false; 
+        let discordMessageShown = false; 
         const textElement = document.getElementById('dialog-text');
         const btnNext = document.getElementById('btn-next');
 
@@ -402,18 +545,30 @@
                 }, 600);
             } 
             else if (isEnd) {
+                // Animation du bouton
                 btnNext.style.transform = "scale(1.3)";
                 setTimeout(() => btnNext.style.transform = "scale(1)", 200);
                 
+                // Explosion de coeurs
                 creerExplosionCoeurs(e.clientX, e.clientY);
                 
+                // Illumination de la boîte
                 boiteDialogue.style.boxShadow = "0 0 40px rgba(255, 107, 129, 0.6)";
                 setTimeout(() => {
                     boiteDialogue.style.boxShadow = "0 15px 35px rgba(255, 182, 193, 0.2), 0 5px 15px rgba(0, 0, 0, 0.05)";
                 }, 500);
+
+                // Affichage du message Discord au premier clic sur le coeur
+                if (!discordMessageShown) {
+                    textElement.style.opacity = 0;
+                    setTimeout(() => {
+                        textElement.innerHTML = "J'attends ta réponse sur Discord... 💬";
+                        textElement.style.opacity = 1;
+                    }, 600);
+                    discordMessageShown = true;
+                }
             }
         });
-
 
         // ==========================================
         // EFFETS VISUELS FINAUX
