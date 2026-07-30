@@ -83,7 +83,6 @@
             z-index: 100;
             transition: all 0.3s ease;
             user-select: none;
-            /* Empêche le bleu de sélection sur mobile */
             -webkit-tap-highlight-color: transparent; 
         }
 
@@ -93,7 +92,7 @@
         }
 
         #ee-crochet { top: 25px; left: 25px; }
-        #ee-overcooked { top: 25px; right: 85px; } /* À côté du bouton musique */
+        #ee-overcooked { top: 25px; right: 85px; } 
         #ee-chat { bottom: 25px; left: 25px; }
         #ee-kebab { bottom: 25px; right: 25px; }
 
@@ -113,7 +112,6 @@
             font-weight: 600;
             opacity: 0;
             pointer-events: none;
-            /* Animation rebondissante */
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 200;
             text-align: center;
@@ -318,6 +316,44 @@
             10% { opacity: 1; }
             100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; }
         }
+
+        /* =========================================
+           RESPONSIVE MOBILE (CORRECTION POUR QUE LE TEXTE NE SOIT PAS COUPÉ)
+           ========================================= */
+        @media (max-width: 768px) {
+            .dialog-box {
+                padding: 30px 20px;
+                width: 95%;
+                max-height: 85vh; /* Empêche la boîte de dépasser de l'écran en hauteur */
+                overflow-y: auto; /* Permet de scroller si le texte est vraiment trop long */
+            }
+            .text-container {
+                margin-bottom: 20px;
+            }
+            #dialog-text {
+                font-size: 16px; /* Taille de police réduite pour téléphone */
+                line-height: 1.5;
+            }
+            .btn-suivant {
+                padding: 10px 25px;
+                font-size: 16px;
+            }
+            .texte-enveloppe {
+                font-size: 22px;
+            }
+            .texte-enveloppe span {
+                font-size: 14px;
+            }
+        }
+        /* Pour les très petits écrans (iPhone SE etc.) */
+        @media (max-width: 380px) {
+            #dialog-text {
+                font-size: 14px; 
+            }
+            .dialog-box {
+                padding: 20px 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -366,7 +402,7 @@
 
     <script>
         // ==========================================
-        // GÉNÉRATEUR DE SONS (AudioContext) AJOUTÉ ICI
+        // GÉNÉRATEUR DE SONS (AudioContext)
         // ==========================================
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -413,30 +449,28 @@
         let toastTimeout;
 
         function afficherSecret(message, soundType = 'pop') {
-            playSound(soundType); // LECTURE DU SON AJOUTÉE ICI
+            playSound(soundType);
             
             toastMsg.innerText = message;
             toastMsg.classList.add('show');
             
-            // Réinitialise le chrono si on clique sur un autre secret rapidement
             clearTimeout(toastTimeout);
             
-            // Fait disparaître le message après 4 secondes
             toastTimeout = setTimeout(() => {
                 toastMsg.classList.remove('show');
             }, 4000);
         }
 
         document.getElementById('ee-crochet').addEventListener('click', () => {
-            afficherSecret("J'attends avec impatience le serre-câble en crochet... 🧶✨", 'pop');
+            afficherSecret("D'ailleurs, j'attends toujours mon pull en crochet... 🧶✨", 'pop');
         });
 
         document.getElementById('ee-overcooked').addEventListener('click', () => {
-            afficherSecret("Promis, on terminera Overcooked 2 avec les 3 étoiles partout ! 🍳🔥", 'pan');
+            afficherSecret("Promis, je ne crierai (presque) plus quand la cuisine brûle sur Overcooked 2 🍳🔥", 'pan');
         });
 
         document.getElementById('ee-chat').addEventListener('click', () => {
-            afficherSecret("Mvoungui m'a dit de te le dire... 🐾🐈", 'meow');
+            afficherSecret("Mvoungui m'a dit de te dire oui... 🐾🐈", 'meow');
         });
 
         document.getElementById('ee-kebab').addEventListener('click', () => {
@@ -485,7 +519,6 @@
         const boiteDialogue = document.getElementById('boite-dialogue');
 
         envelopeBtn.addEventListener('click', () => {
-            // DÉBLOCAGE AUDIO AJOUTÉ ICI
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -519,7 +552,7 @@
             "Et j'avais un truc à te dire, mais je voulais le faire d'une façon originale",
             "Alors j'ai fait ce petit site.",
             "La vérité c'est que je t'aime tout simplement, en plus de ça t'es marrante, t'as du caractère, t'es attachante, t'as juste une personnalité incroyable. Je trouve aussi que t'es vraiment belle, j'adore passer du temps avec toi en t'écrivant en t'appelant ou en jouant. Et si jamais t'acceptes, je te promets de donner le meilleur de moi-même pour bien faire les choses.",
-            "Alors est-ce que ça te dirai de te mettre en couple avec moi ?"
+            "Alors est-ce que ça te tente de te mettre avec moi ?"
         ];
 
         let currentIndex = 0;
@@ -562,7 +595,7 @@
                 if (!discordMessageShown) {
                     textElement.style.opacity = 0;
                     setTimeout(() => {
-                        textElement.innerHTML = "J'attends ta réponse sur Discord... 💬";
+                        textElement.innerHTML = "J'attends ta réponse sur Discord... 💬❤️";
                         textElement.style.opacity = 1;
                     }, 600);
                     discordMessageShown = true;
